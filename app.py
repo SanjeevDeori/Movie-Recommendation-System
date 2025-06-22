@@ -5,38 +5,52 @@ import pickle
 import os
 from dotenv import load_dotenv
 
-load_dotenv()  
+# Must be first Streamlit command
+st.set_page_config(page_title="🎬 Movie Recommender", layout="wide")
 
+# Load environment variables
+load_dotenv()
 API_KEY = os.getenv('TMDB_API_KEY')
+
 if not API_KEY:
-    st.error("API key not found. Please set TMDB_API_KEY environment variable or add a .env file.")
+    st.error("API key not found. Please set TMDB_API_KEY in your .env or Streamlit Secrets.")
     st.stop()
 
-with open('movie_data.pkl', 'rb') as file:
-    movies, cosine_sim = pickle.load(file)
+# Cached data loader
+@st.cache_resource
+def load_data():
+    try:
+        with open('movie_data.pkl', 'rb') as file:
+            return pickle.load(file)
+    except FileNotFoundError:
+        st.error("movie_data.pkl not found in repo. Please add it.")
+        st.stop()
 
+movies, cosine_sim = load_data()
+
+# Cached poster fetcher
 @st.cache_data(show_spinner=False)
 def fetch_poster(movie_id):
     url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key={API_KEY}&language=en-US"
     response = requests.get(url)
     if response.status_code == 200:
         data = response.json()
-        return f"https://image.tmdb.org/t/p/w185{data.get('poster_path')}"
-    else:
-        return "https://via.placeholder.com/185x278.png?text=No+Image"
+        poster_path = data.get('poster_path')
+        if poster_path:
+            return f"https://image.tmdb.org/t/p/w185{poster_path}"
+    return "https://via.placeholder.com/185x278.png?text=No+Image"
 
-def get_recommendations(title, cosine_sim=cosine_sim):
+def get_recommendations(title):
     idx = movies[movies['title'] == title].index[0]
     sim_scores = list(enumerate(cosine_sim[idx]))
     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)[1:11]
     movie_indices = [i[0] for i in sim_scores]
-    recommended_titles = movies.iloc[movie_indices]['title'].values
-    recommended_ids = movies.iloc[movie_indices]['id'].values
-    posters = [fetch_poster(movie_id) for movie_id in recommended_ids]
-    return recommended_titles, posters
+    titles = movies.iloc[movie_indices]['title'].values
+    ids = movies.iloc[movie_indices]['id'].values
+    posters = [fetch_poster(movie_id) for movie_id in ids]
+    return titles, posters
 
-st.set_page_config(page_title="🎬 Movie Recommender", layout="wide")
-
+# UI Layout
 st.markdown("""
     <div style='text-align: center; padding-bottom: 5px;'>
         <h1 style='margin-bottom: 2px;'>🎬 Movie Recommendation System</h1>
@@ -45,6 +59,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 col1, col2, col3 = st.columns([1, 2, 1])
+
 with col2:
     selected_movie = st.selectbox("Choose a movie", movies['title'].values, label_visibility="collapsed")
     if st.button("🍿 Recommend"):
