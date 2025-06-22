@@ -1,7 +1,6 @@
 # 🎬 Movie Recommendation System
 
-A 🌐 **Streamlit web application** that recommends similar movies based on a selected title using **content-based filtering** powered by **cosine similarity**. It uses a preprocessed TMDB dataset and fetches real-time movie posters from the **TMDB API** to enhance user experience.
-
+A **Streamlit web application** 🌐 that recommends similar movies based on your favourite selected movies using **content-based filtering** powered by **cosine similarity**. It uses a preprocessed TMDB dataset and fetches real-time movie posters from the **TMDB API** to enhance user experience.
 ---
 
 ## ✨ Features
@@ -15,6 +14,11 @@ A 🌐 **Streamlit web application** that recommends similar movies based on a s
 ✅ **Scalable** to integrate collaborative filtering or hybrid models
 
 ---
+## 🚀 Live Demo
+
+Deployed at Streamlit.app:
+
+👉 **[movie-recommender-san.streamlit.app](https://movie-recommender-san.streamlit.app)**
 
 ## 🧰 Technologies Used
 
