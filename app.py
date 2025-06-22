@@ -3,28 +3,33 @@ import pandas as pd
 import requests
 import pickle
 import os
-from dotenv import load_dotenv
+import gdown
 
 # Must be first Streamlit command
 st.set_page_config(page_title="🎬 Movie Recommender", layout="wide")
 
-# Load environment variables
-load_dotenv()
-API_KEY = os.getenv('TMDB_API_KEY')
+# Load TMDB API Key from Streamlit Secrets
+API_KEY = st.secrets["TMDB_API_KEY"]
 
 if not API_KEY:
-    st.error("API key not found. Please set TMDB_API_KEY in your .env or Streamlit Secrets.")
+    st.error("API key not found. Please add it in Streamlit Secrets.")
     st.stop()
 
-# Cached data loader
+# Cached data loader from GDrive
 @st.cache_resource
 def load_data():
-    try:
-        with open('movie_data.pkl', 'rb') as file:
-            return pickle.load(file)
-    except FileNotFoundError:
-        st.error("movie_data.pkl not found in repo. Please add it.")
-        st.stop()
+    file_id = "1eKJIbnKNfnMR7G3eVEZN6dQZKNa8JSLS"
+    output = "movie_data.pkl"
+
+    # Download only if not already downloaded
+    if not os.path.exists(output):
+        with st.spinner("Downloading movie data..."):
+            url = f"https://drive.google.com/uc?id={file_id}"
+            gdown.download(url, output, quiet=False)
+
+    # Load the pickle file
+    with open(output, 'rb') as file:
+        return pickle.load(file)
 
 movies, cosine_sim = load_data()
 
