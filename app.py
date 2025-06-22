@@ -5,7 +5,7 @@ import pickle
 import os
 import gdown
 
-# Must be first Streamlit command
+## Must be first Streamlit command
 st.set_page_config(page_title="🎬 Movie Recommender", layout="wide")
 
 # Load TMDB API Key from Streamlit Secrets
